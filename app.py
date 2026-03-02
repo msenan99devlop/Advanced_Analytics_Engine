@@ -422,8 +422,8 @@ menu = st.sidebar.radio("", [
     "🛡️ Strategic Discovery :red[(Pro)]",
     "🧪 Data Quality Report :red[(Pro)]",
     "🧹 Data Cleaning :red[(Pro)]",
-    "🔤 String Functions :red[(Pro)]",
-    "🔢 Numeric Functions :red[(Pro)]",
+    "🔤 String Tools :red[(Pro)]",
+    "🔢 Numeric Tools :red[(Pro)]",
     "📊 Visualization Studio :red[(Pro)]",
     "🔬 Statistical Testing :red[(Pro)]",
     "📝 Final Report & Export :red[(Pro)]"
@@ -1023,3 +1023,4 @@ else:
         render_pro_restriction(menu)
     else:
         st.info(f"The module '{menu}' is currently under construction in the V2 overhaul.")
+
