@@ -87,14 +87,30 @@ st.markdown("""
         color: #ffffff !important;
     }
     
-    /* EXCEPT: RED TEXT FOR :red[(Pro)] */
-    [data-testid="stSidebar"] span[style*="color: rgb(255, 75, 75)"] {
+    /* ==========================================
+       FIX: RED COLOR FOR PRO IN SIDEBAR
+       ========================================== */
+    [data-testid="stSidebar"] span[data-testid="stMarkdownContainer"] span {
         color: #ff4b4b !important;
     }
-    [data-testid="stSidebar"] .red-text,
-    [data-testid="stSidebar"] [style*="color: #ef4444"],
-    [data-testid="stSidebar"] [style*="color: #ff4b4b"] {
+    
+    /* Target specific red elements */
+    [data-testid="stSidebar"] [style*="color: rgb(255, 75, 75)"],
+    [data-testid="stSidebar"] [style*="color: #ff4b4b"],
+    [data-testid="stSidebar"] [style*="color: #ef4444"] {
         color: #ff4b4b !important;
+    }
+    
+    /* ==========================================
+       FIX: WHITE TEXT FOR DATA UPLOAD HEADER
+       ========================================== */
+    .upload-header-white {
+        color: #ffffff !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .upload-subheader-white {
+        color: #e2e8f0 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     
     /* SIDEBAR TITLE STYLING */
@@ -530,11 +546,15 @@ def render_data_upload():
             </style>
         """, unsafe_allow_html=True)
 
-    # FIX: Page header with proper top margin
+    # FIX: WHITE TEXT FOR DATA UPLOAD HEADER
     st.markdown("""
         <div class="page-header-container" style="margin-top: 1rem; padding-top: 0.5rem;">
-            <h1 class="upload-text-header text-4xl font-extrabold text-gray-900 tracking-tight mb-2">📂 Data Upload & Initialization</h1>
-            <p class="upload-text-p" style="color:#374151; font-size:1.1rem; font-weight:600; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid rgba(59,130,246,0.3);">Upload your dataset to begin the intelligence pipeline.</p>
+            <h1 class="upload-header-white" style="color: #ffffff; font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                📂 Data Upload & Initialization
+            </h1>
+            <p class="upload-subheader-white" style="color: #e2e8f0; font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid rgba(255,255,255,0.3); text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                Upload your dataset to begin the intelligence pipeline.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
