@@ -54,37 +54,79 @@ st.markdown("""
     .stMetric [data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 800 !important; color: #1e3a8a !important; }
     .stMetric [data-testid="stMetricLabel"] { font-size: 0.9rem !important; font-weight: 600 !important; color: #475569 !important; }
     
-    /* Sidebar Styling with Dynamic Background */
+    /* ==========================================
+       SIDEBAR STYLING - WHITE TEXT FOR ALL
+       ========================================== */
     [data-testid="stSidebar"] {
-        background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,%s");
+        background-image: linear-gradient(rgba(15, 23, 42, 0.90), rgba(15, 23, 42, 0.95)), url("data:image/png;base64,%s");
         background-size: cover;
         background-position: center;
-        color: white !important;
     }
-    [data-testid="stSidebarContent"] { padding-top: 0rem !important; }
+    [data-testid="stSidebarContent"] { 
+        padding-top: 0rem !important;
+        color: #ffffff !important;
+    }
     
-    /* GLOABL CARD HOVER EFFECTS (Metrics & Custom) */
+    /* ALL TEXT IN SIDEBAR = WHITE */
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    
+    /* EXCEPT: RED TEXT FOR :red[(Pro)] */
+    [data-testid="stSidebar"] span[style*="color: rgb(255, 75, 75)"] {
+        color: #ff4b4b !important;
+    }
+    [data-testid="stSidebar"] .red-text,
+    [data-testid="stSidebar"] [style*="color: #ef4444"],
+    [data-testid="stSidebar"] [style*="color: #ff4b4b"] {
+        color: #ff4b4b !important;
+    }
+    
+    /* SIDEBAR TITLE STYLING */
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #ffffff !important;
+    }
+    
+    /* RADIO BUTTON LABELS = WHITE */
+    [data-testid="stSidebar"] div[role="radiogroup"] label {
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        transition: all 0.2s !important;
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background-color: rgba(255,255,255,0.15) !important;
+        color: #ffffff !important;
+    }
+    
+    /* ACTIVE/CHECKED STATE */
+    [data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.4)) !important;
+        border-left: 3px solid #3b82f6 !important;
+        color: #ffffff !important;
+    }
+    
+    /* HIDE RADIO CIRCLE */
+    [data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child {
+        display: none !important;
+    }
+    
+    /* GLOABL CARD HOVER EFFECTS */
     [data-testid="stMetric"], .custom-card {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         border: 1px solid transparent !important;
     }
-    
     [data-testid="stMetric"]:hover, .custom-card:hover {
         transform: translateY(-5px) scale(1.01) !important;
         box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
         border: 1px solid rgba(59, 130, 246, 0.3) !important;
-    }
-    
-    /* Hover effects for Sidebar Menu */
-    [data-testid="stSidebar"] div[role="radiogroup"] label {
-        padding: 5px 10px !important;
-        border-radius: 8px !important;
-        transition: all 0.2s !important;
-        color: #cbd5e1 !important;
-    }
-    [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-        background-color: rgba(255,255,255,0.1) !important;
-        color: #ffffff !important;
     }
     
     .stButton>button { border-radius: 8px !important; font-weight: bold !important; }
@@ -93,7 +135,7 @@ st.markdown("""
     /* Clean UI and Reduce Top Spacing */
     .block-container { padding-top: 1rem !important; }
     
-    /* Ensure the sidebar toggle specifically is visible and has higher z-index */
+    /* Ensure the sidebar toggle specifically is visible */
     [data-testid="stSidebarCollapsedControl"] {
         visibility: visible !important;
         z-index: 999999 !important;
@@ -120,7 +162,7 @@ st.markdown("""
         opacity: 0.9;
     }
     
-    /* Hide the actual radio circle */
+    /* Hide the actual radio circle in main */
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label span[data-baseweb="radio"],
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label div[data-baseweb="radio"],
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label input[type="radio"],
@@ -128,7 +170,7 @@ st.markdown("""
         display: none !important;
     }
 
-    /* 2. ACTIVE RED STATE */
+    /* ACTIVE RED STATE IN MAIN */
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label[data-checked="true"],
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
         background: #ff4b4b !important;
@@ -145,45 +187,68 @@ st.markdown("""
     section[data-testid="stMain"] div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) * {
         color: white !important;
     }
+    
+    /* ==========================================
+       DARK MODE TOGGLE BUTTON STYLING
+       ========================================== */
+    .dark-mode-toggle-container {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 999999 !important;
+    }
+    
+    /* Style for the toggle in sidebar */
+    [data-testid="stSidebar"] [data-testid="stToggle"] {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stToggle"] > div {
+        background-color: #3b82f6 !important;
+    }
 </style>
 """ % sidebar_img_base64, unsafe_allow_html=True)
 
 # ==========================================
-# DARK MODE TOGGLE - FIXED
+# DARK MODE TOGGLE - FIXED POSITION
 # ==========================================
-dark_mode = st.toggle("🌓 Dark Mode", key="global_dark_mode")
-if dark_mode:
-    st.markdown("""
-    <style>
-        /* عكس الألوان للوضع الداكن */
-        html { filter: invert(1) hue-rotate(180deg); }
-        
-        /* استثناء الصور والفيديو من التأثير */
-        img, video, iframe, canvas, svg { 
-            filter: invert(1) hue-rotate(180deg); 
-        }
-        
-        /* إصلاح ألوان النصوص - إزالة اللون الأحمر */
-        .upload-text-p,
-        [data-testid="stFileUploader"] label, 
-        [data-testid="stFileUploader"] label p,
-        [data-testid="stFileUploaderText"] { 
-            color: #1e293b !important; 
-            font-weight: 600 !important; 
-        }
-        
-        /* إصلاح العنوان الرئيسي */
-        .upload-text-header { 
-            color: #1e3a8a !important; 
-            font-weight: 800 !important; 
-        }
-        
-        /* إصلاح ألوان الجداول */
-        .stDataFrame, [data-testid="stTable"] {
-            filter: invert(1) hue-rotate(180deg);
-        }
-    </style>
-    """, unsafe_allow_html=True)
+# نقل التحكم إلى Sidebar مع أيقونة واضحة
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("<h3 style='color: #ffffff; font-size: 1rem; margin-bottom: 10px;'>⚙️ Settings</h3>", unsafe_allow_html=True)
+    
+    # Toggle مع أيقونة واضحة
+    dark_mode = st.toggle("🌙 Dark Mode / ☀️ Light Mode", key="global_dark_mode")
+    
+    if dark_mode:
+        st.markdown("""
+        <style>
+            /* عكس الألوان للوضع الداكن */
+            html { filter: invert(1) hue-rotate(180deg); }
+            
+            /* استثناء الصور والفيديو */
+            img, video, iframe, canvas, svg { 
+                filter: invert(1) hue-rotate(180deg); 
+            }
+            
+            /* إصلاح ألوان النصوص */
+            .upload-text-p,
+            [data-testid="stFileUploader"] label, 
+            [data-testid="stFileUploader"] label p,
+            [data-testid="stFileUploaderText"] { 
+                color: #1e293b !important; 
+                font-weight: 600 !important; 
+            }
+            
+            .upload-text-header { 
+                color: #1e3a8a !important; 
+                font-weight: 800 !important; 
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        st.success("🌙 Dark Mode Enabled")
+    else:
+        st.info("☀️ Light Mode Active")
 
 # Initialize Session State
 if 'df' not in st.session_state:
@@ -207,11 +272,9 @@ def create_color_card(title, value, grad_from, grad_to, border_color, text_color
     """
 
 def styled_table(df, height=420, full_width=True):
-    # تحويل DataFrame إلى HTML
     if hasattr(df, 'to_html'):
         html_table = df.to_html(index=False, border=0)
     else:
-        # إذا كان styled DataFrame
         html_table = df.to_html(index=False, border=0)
     
     width_val = "100%" if full_width else "fit-content"
@@ -293,90 +356,41 @@ def styled_table(df, height=420, full_width=True):
     </html>
     """, height=height)
 
-# ==========================================
-# FIXED: to_excel function with error handling
-# ==========================================
 def to_excel(df):
     """تصدير DataFrame إلى Excel مع معالجة الأخطاء"""
     try:
         output = io.BytesIO()
-        # محاولة استخدام xlsxwriter أولاً
         try:
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                 df.to_excel(writer, index=False, sheet_name='Sheet1')
         except Exception:
-            # fallback إلى openpyxl
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Sheet1')
         output.seek(0)
         return output.getvalue()
     except Exception as e:
         st.error(f"خطأ في تصدير Excel: {e}")
-        # إرجاع CSV كبديل
         return df.to_csv(index=False).encode('utf-8')
 
 # ==========================================
+# SIDEBAR HEADER - WHITE TEXT
+# ==========================================
 st.sidebar.markdown("""
-    <div style="margin-top: -3rem; margin-bottom: 0px;">
-        <p class="text-center text-xs text-blue-300 font-medium opacity-60 tracking-widest uppercase mt-[-5px]">
-            Advanced Analytics Engine
+    <div style="margin-top: -2rem; margin-bottom: 1rem; text-align: center;">
+        <h2 style="color: #ffffff; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">
+            🧬 Advanced Analytics
+        </h2>
+        <p style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">
+            Data Intelligence Engine
         </p>
     </div>
+    <hr style='margin: 1rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.2);'>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("<hr style='margin: 0.2rem 0; border: none; border-top: 1px solid rgba(156, 163, 175, 0.3);'>", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-    /* Styling the radio options in the sidebar */
-    [data-testid="stSidebar"] div[data-testid="stRadio"] {
-        margin-top: -15px !important;
-    }
-
-    [data-testid="stSidebar"] div[role="radiogroup"] label {
-        padding: 0.2rem 0.4rem !important;
-        border-radius: 6px !important;
-        margin-bottom: 0px !important;
-        transition: all 0.2s ease-in-out !important;
-    }
-    
-    /* Hide the radio group title ("Modules") */
-    [data-testid="stSidebar"] div[data-testid="stRadio"] > label {
-        display: none !important;
-    }
-    
-    /* Make the emojis inside the text pop out and look 3D */
-    [data-testid="stSidebar"] div[role="radiogroup"] label p {
-        font-weight: 500 !important;
-        font-size: 0.88rem !important;
-    }
-    
-    /* Give the first letter (emoji) a distinct style */
-    [data-testid="stSidebar"] div[role="radiogroup"] label p::first-letter {
-        font-size: 1.1rem !important;
-        text-shadow: 0px 2px 3px rgba(0,0,0,0.2) !important;
-        margin-right: 0.2rem !important;
-    }
-
-    /* Hover effect */
-    [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-        background-color: rgba(99, 102, 241, 0.1) !important;
-    }
-
-    /* Active state (Checked) styling */
-    [data-testid="stSidebar"] div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15)) !important;
-        box-shadow: inset 4px 0 0 #dc2626 !important;
-    }
-    
-    /* Hide the default radio circle */
-    [data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child {
-        display: none !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-menu = st.sidebar.radio("Modules", [
+# ==========================================
+# MENU - WHITE TEXT WITH RED PRO
+# ==========================================
+menu = st.sidebar.radio("", [
     "📂 Data Upload",
     "🔎 Data Exploration",
     "🛡️ Strategic Discovery :red[(Pro)]",
@@ -506,7 +520,6 @@ def render_data_upload():
             </style>
         """, unsafe_allow_html=True)
 
-    # FIXED: إزالة اللون الأحمر من النص
     st.markdown("""
         <div style="margin-top:-2rem;">
             <h1 class="upload-text-header text-4xl font-extrabold text-gray-900 tracking-tight mb-2">📂 Data Upload & Initialization</h1>
@@ -527,7 +540,6 @@ def render_data_upload():
                 st.session_state.df = df.copy()
                 st.session_state.original_df = df.copy()
                 
-                # Smart Date Detection
                 date_keywords = ['date', 'timestamp', '_at', 'deadline', 'valid_until']
                 converted_cols = []
                 for col in st.session_state.df.columns:
@@ -584,7 +596,7 @@ def render_data_exploration():
         </style>
     """, unsafe_allow_html=True)
 
-    # ── Section 1: Dataset Properties ────────────────────────
+    # Section 1: Dataset Properties
     st.markdown("### 1. Dataset Properties")
     p1, p2, p3, p4 = st.columns(4)
     p1.markdown(create_color_card("Shape (Rows × Cols)", f"{df.shape[0]:,} × {df.shape[1]:,}", "#fdf4ff", "#fae8ff", "#c026d3", "#701a75", "#701a75", val_font_size="1.10rem"), unsafe_allow_html=True)
@@ -598,7 +610,7 @@ def render_data_exploration():
     with st.expander("Show Data Types (df.dtypes)"):
         styled_table(df.dtypes.astype(str).to_frame(name="Data Type").reset_index().rename(columns={"index": "Column Name"}), height=300)
 
-    # ── Section 2: Data Preview ──────────────────────────────────
+    # Section 2: Data Preview
     st.markdown("---")
     st.markdown("### 2. View Data")
     custom_n = st.number_input("🔢 Customize the row numbers:", min_value=1, max_value=len(df), value=5, step=5)
@@ -651,7 +663,7 @@ def render_data_exploration():
             if _cs:
                 st.write(f"**{_typ}:** {', '.join(_cs)}")
 
-    # ── Section 4: Missing Values ─────────────────────────────
+    # Section 4: Missing Values
     st.markdown("---")
     st.markdown("### 4. Missing Values Check")
     
@@ -660,7 +672,6 @@ def render_data_exploration():
         with col1:
             st.write("**Total Missing by Column**")
             missing_df = df.isnull().sum().to_frame(name="Missing Count").reset_index().rename(columns={"index": "Column Name"})
-            # FIXED: تطبيق التنسيق بشكل صحيح
             styled_missing = missing_df.style.applymap(
                 lambda v: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold' if isinstance(v, (int, float)) and v > 0 else '', 
                 subset=['Missing Count']
@@ -696,14 +707,12 @@ def render_data_exploration():
                 </div>
             """, unsafe_allow_html=True)
         
-        # FIXED: Excel Export with proper error handling
         if not missing_df.empty:
             missing_summary = missing_df.copy()
             missing_summary["% Missing"] = missing_pct_df["% Missing"].values
             
             excel_data = to_excel(missing_summary)
             if excel_data:
-                # FIXED: استخدام MIME type صحيح
                 st.download_button(
                     label="📥 Download Missing Values Report (Excel)",
                     data=excel_data,
@@ -718,7 +727,6 @@ def render_data_exploration():
 
     st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
     
-    # أزرار إضافية
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         if st.button("Show Rows with Missing Values", key="btn_missing_rows"):
