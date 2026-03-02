@@ -43,6 +43,21 @@ st.markdown("""
 
     .main { background-color: #f4f6f9; }
     
+    /* ==========================================
+       FIX: REDUCE TOP PADDING FOR MAIN CONTENT
+       ========================================== */
+    .block-container {
+        padding-top: 3rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* ==========================================
+       FIX: HEADER POSITION IN MAIN CONTENT
+       ========================================== */
+    section[data-testid="stMain"] > div > div > div > div:first-child {
+        margin-top: 0 !important;
+    }
+    
     /* Enhanced Metric Cards */
     .stMetric { 
         background: white !important; 
@@ -132,9 +147,6 @@ st.markdown("""
     .stButton>button { border-radius: 8px !important; font-weight: bold !important; }
     .log-container { background-color: #1e1e2e !important; color: #a6adc8 !important; padding: 12px !important; border-radius: 8px !important; font-family: monospace !important; border-left: 4px solid #94e2d5 !important; }
     
-    /* Clean UI and Reduce Top Spacing */
-    .block-container { padding-top: 1rem !important; }
-    
     /* Ensure the sidebar toggle specifically is visible */
     [data-testid="stSidebarCollapsedControl"] {
         visibility: visible !important;
@@ -189,6 +201,15 @@ st.markdown("""
     }
     
     /* ==========================================
+       FIX: PAGE HEADERS POSITION - ADD TOP MARGIN
+       ========================================== */
+    .page-header-container {
+        margin-top: 2rem !important;
+        margin-bottom: 1.5rem !important;
+        padding-top: 1rem !important;
+    }
+    
+    /* ==========================================
        DARK MODE TOGGLE BUTTON STYLING
        ========================================== */
     .dark-mode-toggle-container {
@@ -208,47 +229,6 @@ st.markdown("""
     }
 </style>
 """ % sidebar_img_base64, unsafe_allow_html=True)
-
-# ==========================================
-# DARK MODE TOGGLE - FIXED POSITION
-# ==========================================
-# نقل التحكم إلى Sidebar مع أيقونة واضحة
-with st.sidebar:
-    st.markdown("---")
-    st.markdown("<h3 style='color: #ffffff; font-size: 1rem; margin-bottom: 10px;'>⚙️ Settings</h3>", unsafe_allow_html=True)
-    
-    # Toggle مع أيقونة واضحة
-    dark_mode = st.toggle("🌙 Dark Mode / ☀️ Light Mode", key="global_dark_mode")
-    
-    if dark_mode:
-        st.markdown("""
-        <style>
-            /* عكس الألوان للوضع الداكن */
-            html { filter: invert(1) hue-rotate(180deg); }
-            
-            /* استثناء الصور والفيديو */
-            img, video, iframe, canvas, svg { 
-                filter: invert(1) hue-rotate(180deg); 
-            }
-            
-            /* إصلاح ألوان النصوص */
-            .upload-text-p,
-            [data-testid="stFileUploader"] label, 
-            [data-testid="stFileUploader"] label p,
-            [data-testid="stFileUploaderText"] { 
-                color: #1e293b !important; 
-                font-weight: 600 !important; 
-            }
-            
-            .upload-text-header { 
-                color: #1e3a8a !important; 
-                font-weight: 800 !important; 
-            }
-        </style>
-        """, unsafe_allow_html=True)
-        st.success("🌙 Dark Mode Enabled")
-    else:
-        st.info("☀️ Light Mode Active")
 
 # Initialize Session State
 if 'df' not in st.session_state:
@@ -373,19 +353,49 @@ def to_excel(df):
         return df.to_csv(index=False).encode('utf-8')
 
 # ==========================================
-# SIDEBAR HEADER - WHITE TEXT
+# SIDEBAR HEADER - MOVED TO TOP (NO MARGIN-TOP)
 # ==========================================
-st.sidebar.markdown("""
-    <div style="margin-top: -2rem; margin-bottom: 1rem; text-align: center;">
-        <h2 style="color: #ffffff; font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem;">
-            🧬 Advanced Analytics
-        </h2>
-        <p style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">
-            Data Intelligence Engine
-        </p>
-    </div>
-    <hr style='margin: 1rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.2);'>
-""", unsafe_allow_html=True)
+with st.sidebar:
+    # Header at the very top
+    st.markdown("""
+        <div style="text-align: center; margin-bottom: 0.5rem; margin-top: -1rem;">
+            <h2 style="color: #ffffff; font-weight: 800; font-size: 1.2rem; margin-bottom: 0.3rem;">
+                🧬 Advanced Analytics
+            </h2>
+            <p style="color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
+                Data Intelligence Engine
+            </p>
+        </div>
+        <hr style='margin: 0.5rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.15);'>
+    """, unsafe_allow_html=True)
+    
+    # ==========================================
+    # DARK MODE TOGGLE - IN SIDEBAR (NO SETTINGS LABEL)
+    # ==========================================
+    dark_mode = st.toggle("🌙 Dark Mode", key="global_dark_mode")
+    
+    if dark_mode:
+        st.markdown("""
+        <style>
+            html { filter: invert(1) hue-rotate(180deg); }
+            img, video, iframe, canvas, svg { 
+                filter: invert(1) hue-rotate(180deg); 
+            }
+            .upload-text-p,
+            [data-testid="stFileUploader"] label, 
+            [data-testid="stFileUploader"] label p,
+            [data-testid="stFileUploaderText"] { 
+                color: #1e293b !important; 
+                font-weight: 600 !important; 
+            }
+            .upload-text-header { 
+                color: #1e3a8a !important; 
+                font-weight: 800 !important; 
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
 
 # ==========================================
 # MENU - WHITE TEXT WITH RED PRO
@@ -520,8 +530,9 @@ def render_data_upload():
             </style>
         """, unsafe_allow_html=True)
 
+    # FIX: Page header with proper top margin
     st.markdown("""
-        <div style="margin-top:-2rem;">
+        <div class="page-header-container" style="margin-top: 1rem; padding-top: 0.5rem;">
             <h1 class="upload-text-header text-4xl font-extrabold text-gray-900 tracking-tight mb-2">📂 Data Upload & Initialization</h1>
             <p class="upload-text-p" style="color:#374151; font-size:1.1rem; font-weight:600; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid rgba(59,130,246,0.3);">Upload your dataset to begin the intelligence pipeline.</p>
         </div>
@@ -567,8 +578,9 @@ def render_data_upload():
                 st.error(f"Error loading file: {e}")
 
 def render_data_exploration():
+    # FIX: Page header with proper top margin
     st.markdown("""
-        <div style="margin-top:-2rem;">
+        <div class="page-header-container" style="margin-top: 1rem; padding-top: 0.5rem;">
             <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 tracking-tight mb-2">
                 🔎 Data Exploration
             </h1>
