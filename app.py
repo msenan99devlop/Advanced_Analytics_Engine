@@ -148,35 +148,40 @@ st.markdown("""
 </style>
 """ % sidebar_img_base64, unsafe_allow_html=True)
 
-# Global Dark Mode Toggle
+# ==========================================
+# DARK MODE TOGGLE - FIXED
+# ==========================================
 dark_mode = st.toggle("🌓 Dark Mode", key="global_dark_mode")
 if dark_mode:
     st.markdown("""
     <style>
+        /* عكس الألوان للوضع الداكن */
         html { filter: invert(1) hue-rotate(180deg); }
-        img, video, iframe, canvas { filter: invert(1) hue-rotate(180deg); }
         
-        /* Instruction text and File Uploader label Red and Bold in Dark Mode */
+        /* استثناء الصور والفيديو من التأثير */
+        img, video, iframe, canvas, svg { 
+            filter: invert(1) hue-rotate(180deg); 
+        }
+        
+        /* إصلاح ألوان النصوص - إزالة اللون الأحمر */
         .upload-text-p,
         [data-testid="stFileUploader"] label, 
         [data-testid="stFileUploader"] label p,
         [data-testid="stFileUploaderText"] { 
-            color: #ff0000 !important; 
-            font-weight: 900 !important; 
-            filter: invert(1) hue-rotate(180deg) !important;
+            color: #1e293b !important; 
+            font-weight: 600 !important; 
         }
         
-        .upload-text-p {
-            border-bottom-color: rgba(255, 0, 0, 0.3) !important; 
-        }
-        
-        /* Reset header back to high-contrast white (inverted black) */
+        /* إصلاح العنوان الرئيسي */
         .upload-text-header { 
-            color: #000000 !important; 
-            font-weight: 900 !important; 
-            filter: none !important;
+            color: #1e3a8a !important; 
+            font-weight: 800 !important; 
         }
-
+        
+        /* إصلاح ألوان الجداول */
+        .stDataFrame, [data-testid="stTable"] {
+            filter: invert(1) hue-rotate(180deg);
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -187,6 +192,8 @@ if 'original_df' not in st.session_state:
     st.session_state.original_df = None
 if 'log' not in st.session_state:
     st.session_state.log = ["Platform Initialized."]
+if 'dx_selected_view' not in st.session_state:
+    st.session_state.dx_selected_view = 0
 
 def add_to_log(message):
     st.session_state.log.append(message)
@@ -200,8 +207,15 @@ def create_color_card(title, value, grad_from, grad_to, border_color, text_color
     """
 
 def styled_table(df, height=420, full_width=True):
-    html_table = df.to_html(index=False, border=0)
+    # تحويل DataFrame إلى HTML
+    if hasattr(df, 'to_html'):
+        html_table = df.to_html(index=False, border=0)
+    else:
+        # إذا كان styled DataFrame
+        html_table = df.to_html(index=False, border=0)
+    
     width_val = "100%" if full_width else "fit-content"
+    
     components.html(f"""
     <!DOCTYPE html>
     <html>
@@ -279,13 +293,27 @@ def styled_table(df, height=420, full_width=True):
     </html>
     """, height=height)
 
+# ==========================================
+# FIXED: to_excel function with error handling
+# ==========================================
 def to_excel(df):
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Sheet1')
-    return output.getvalue()
-
-
+    """تصدير DataFrame إلى Excel مع معالجة الأخطاء"""
+    try:
+        output = io.BytesIO()
+        # محاولة استخدام xlsxwriter أولاً
+        try:
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Sheet1')
+        except Exception:
+            # fallback إلى openpyxl
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Sheet1')
+        output.seek(0)
+        return output.getvalue()
+    except Exception as e:
+        st.error(f"خطأ في تصدير Excel: {e}")
+        # إرجاع CSV كبديل
+        return df.to_csv(index=False).encode('utf-8')
 
 # ==========================================
 st.sidebar.markdown("""
@@ -337,8 +365,8 @@ st.markdown("""
 
     /* Active state (Checked) styling */
     [data-testid="stSidebar"] div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15)) !important; /* red-500/red-600 */
-        box-shadow: inset 4px 0 0 #dc2626 !important; /* Left red border highlight */
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15)) !important;
+        box-shadow: inset 4px 0 0 #dc2626 !important;
     }
     
     /* Hide the default radio circle */
@@ -360,7 +388,6 @@ menu = st.sidebar.radio("Modules", [
     "🔬 Statistical Testing :red[(Pro)]",
     "📝 Final Report & Export :red[(Pro)]"
 ])
-
 
 # ==========================================
 # 3. Module Definitions
@@ -400,7 +427,6 @@ def render_pro_restriction(section_name):
                 position: relative;
                 overflow: hidden;
             }}
-            /* Gradient Top Border */
             .pro-card::before {{
                 content: '';
                 position: absolute;
@@ -443,7 +469,6 @@ def render_pro_restriction(section_name):
                 line-height: 1.6;
                 margin-top: 1rem;
             }}
-            /* Dark Mode Adaptations */
             @media (prefers-color-scheme: dark) {{
                 .pro-card {{
                     background: rgba(31, 41, 55, 0.8);
@@ -468,7 +493,6 @@ def render_pro_restriction(section_name):
         </div>
     """, unsafe_allow_html=True)
 
-
 def render_data_upload():
     if upload_bg_base64:
         st.markdown(f"""
@@ -482,10 +506,11 @@ def render_data_upload():
             </style>
         """, unsafe_allow_html=True)
 
+    # FIXED: إزالة اللون الأحمر من النص
     st.markdown("""
         <div style="margin-top:-2rem;">
             <h1 class="upload-text-header text-4xl font-extrabold text-gray-900 tracking-tight mb-2">📂 Data Upload & Initialization</h1>
-            <p class="upload-text-p" style="color:#ff0000; font-size:1.1rem; font-weight:900; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid rgba(255,0,0,0.2);">Upload your dataset to begin the intelligence pipeline.</p>
+            <p class="upload-text-p" style="color:#374151; font-size:1.1rem; font-weight:600; margin-bottom:1rem; padding-bottom:1rem; border-bottom:2px solid rgba(59,130,246,0.3);">Upload your dataset to begin the intelligence pipeline.</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -502,18 +527,14 @@ def render_data_upload():
                 st.session_state.df = df.copy()
                 st.session_state.original_df = df.copy()
                 
-                # Smart Date Detection (Refined to avoid false positives like 'Negotiated')
+                # Smart Date Detection
                 date_keywords = ['date', 'timestamp', '_at', 'deadline', 'valid_until']
                 converted_cols = []
                 for col in st.session_state.df.columns:
-                    # Type guard: only check object (string) columns
                     if st.session_state.df[col].dtype == 'object':
-                        # Only check if column name explicitly suggests a date/time
                         if any(kw in col.lower() for kw in date_keywords):
                             try:
-                                # Attempt to parse as datetime
                                 temp_series = pd.to_datetime(st.session_state.df[col], errors='coerce')
-                                # If more than 50% are valid dates and it's not mostly numbers
                                 if temp_series.notna().sum() > len(temp_series) * 0.5:
                                     st.session_state.df[col] = temp_series
                                     converted_cols.append(col)
@@ -542,6 +563,7 @@ def render_data_exploration():
             <p class="text-gray-600 mb-4">Quick overview and basic pandas operations for initial data understanding.</p>
         </div>
     """, unsafe_allow_html=True)
+    
     df = st.session_state.df
 
     st.markdown("""
@@ -557,7 +579,6 @@ def render_data_exploration():
             font-size: 11px !important;
             border-radius: 6px !important;
         }
-        /* Tighten gap between rows and columns */
         div.stColumn { margin-bottom: -0.75rem !important; }
         div[data-testid="column"] { padding: 0 2px !important; }
         </style>
@@ -577,7 +598,7 @@ def render_data_exploration():
     with st.expander("Show Data Types (df.dtypes)"):
         styled_table(df.dtypes.astype(str).to_frame(name="Data Type").reset_index().rename(columns={"index": "Column Name"}), height=300)
 
-    # ── Section 2: Data Preview (View Data) ──────────────────────────────────
+    # ── Section 2: Data Preview ──────────────────────────────────
     st.markdown("---")
     st.markdown("### 2. View Data")
     custom_n = st.number_input("🔢 Customize the row numbers:", min_value=1, max_value=len(df), value=5, step=5)
@@ -587,9 +608,6 @@ def render_data_exploration():
         ("🔽", f"VIEW TAIL"),
         ("🔀", f"RANDOM VIEW")
     ]
-    
-    if 'dx_selected_view' not in st.session_state:
-        st.session_state.dx_selected_view = 0
         
     v_cols = st.columns(3)
     for i in range(3):
@@ -610,11 +628,9 @@ def render_data_exploration():
         styled_table(df.sample(min(custom_n, len(df))))
 
     # Section 3: Data Type Classification
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 3. 🧠 Data Type Classification Summary")
     
-    # Precise extraction of requested types
     float_cols = df.select_dtypes(include=['float']).columns.tolist()
     int_cols   = df.select_dtypes(include=['int', 'integer']).columns.tolist()
     string_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -624,68 +640,116 @@ def render_data_exploration():
     t1, t2, t3, t4, t5 = st.columns(5)
     t1.markdown(create_color_card("string",   f"{len(string_cols)}", "#fdf4ff", "#fae8ff", "#c026d3", "#701a75", "#701a75"), unsafe_allow_html=True)
     t2.markdown(create_color_card("float",    f"{len(float_cols)}",  "#eff6ff", "#dbeafe", "#2563eb", "#1e3a8a", "#1e3a8a"), unsafe_allow_html=True)
-    t3.markdown(create_color_card("inti",     f"{len(int_cols)}",    "#ecfdf5", "#d1fae5", "#059669", "#064e3b", "#064e3b"), unsafe_allow_html=True)
-    t4.markdown(create_color_card("boalean",  f"{len(bool_cols)}",   "#f0fdf4", "#dcfce7", "#16a34a", "#14532d", "#14532d"), unsafe_allow_html=True)
+    t3.markdown(create_color_card("int",     f"{len(int_cols)}",    "#ecfdf5", "#d1fae5", "#059669", "#064e3b", "#064e3b"), unsafe_allow_html=True)
+    t4.markdown(create_color_card("boolean",  f"{len(bool_cols)}",   "#f0fdf4", "#dcfce7", "#16a34a", "#14532d", "#14532d"), unsafe_allow_html=True)
     t5.markdown(create_color_card("datetime", f"{len(dt_cols)}",     "#fffbeb", "#fef3c7", "#d97706", "#78350f", "#78350f"), unsafe_allow_html=True)
     
     st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
     with st.expander("View Columns per Type"):
         for _typ, _cs in [("string", string_cols), ("float", float_cols),
-                          ("inti", int_cols), ("boalean", bool_cols), ("datetime", dt_cols)]:
+                          ("int", int_cols), ("boolean", bool_cols), ("datetime", dt_cols)]:
             if _cs:
                 st.write(f"**{_typ}:** {', '.join(_cs)}")
 
     # ── Section 4: Missing Values ─────────────────────────────
     st.markdown("---")
     st.markdown("### 4. Missing Values Check")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**Total Missing by Column (df.isnull().sum())**")
-        styled_table(df.isnull().sum().to_frame(name="Missing Count").reset_index().rename(columns={"index": "Column Name"}).style.applymap(lambda v: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold' if isinstance(v, (int, float)) and v > 0 else '', subset=['Missing Count']), height=300)
-    with col2:
-        st.write("**Missing Percentage (df.isnull().mean() * 100)**")
-        styled_table((df.isnull().mean() * 100).round(2).to_frame(name="% Missing").reset_index().rename(columns={"index": "Column Name"}).style.format({"% Missing": "{:.2f}%"}).applymap(lambda v: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold' if isinstance(v, (int, float)) and v > 0 else '', subset=['% Missing']), height=300)
-    total_missing_all = df.isnull().sum().sum()
-    total_cells = df.size
-    total_missing_pct = (total_missing_all / total_cells) * 100 if total_cells > 0 else 0
     
-    m1, m2 = st.columns(2)
-    with m1:
-        st.markdown(f"""
-            <div style="background-color: #fee2e2; padding: 15px; border-radius: 10px; border-left: 5px solid #dc2626; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div style="font-size: 0.85rem; font-weight: 600; color: #991b1b; margin-bottom: 4px;">📂 Total Missing Cells</div>
-                <div style="font-size: 1.8rem; font-weight: 800; color: #dc2626;">{total_missing_all:,}</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with m2:
-        st.markdown(f"""
-            <div style="background-color: #fff7ed; padding: 15px; border-radius: 10px; border-left: 5px solid #f97316; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div style="font-size: 0.85rem; font-weight: 600; color: #9a3412; margin-bottom: 4px;">📊 Total Missing Percentage %</div>
-                <div style="font-size: 1.8rem; font-weight: 800; color: #ea580c;">{total_missing_pct:.2f}%</div>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    # Excel Export for Missing Values
-    missing_summary = df.isnull().sum().to_frame(name="Missing Count").reset_index().rename(columns={"index": "Column Name"})
-    missing_summary["% Missing"] = (df.isnull().mean() * 100).round(2).values
-    st.download_button(label="📥 Download Missing Values Report (Excel)", data=to_excel(missing_summary), file_name="missing_values_report.xlsx", mime="application/vnd.ms-excel")
-    
-    st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
-    if st.button("Show Rows with Missing Values"):
-        missing_rows_df = df[df.isnull().any(axis=1)]
-        styled_table(missing_rows_df.style.applymap(lambda v: 'background-color: #fecaca; color: #b91c1c; font-weight: bold' if pd.isna(v) else ''))
-        st.download_button(label="📥 Download Missing Rows (Excel)", data=to_excel(missing_rows_df), file_name="missing_rows_data.xlsx", mime="application/vnd.ms-excel", key="dl_missing_rows")
-    if st.button("Show Columns with Missing Values"):
-        cols_with_missing = df.columns[df.isnull().any()]
-        st.write("Columns with missing values:", list(cols_with_missing))
+    try:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Total Missing by Column**")
+            missing_df = df.isnull().sum().to_frame(name="Missing Count").reset_index().rename(columns={"index": "Column Name"})
+            # FIXED: تطبيق التنسيق بشكل صحيح
+            styled_missing = missing_df.style.applymap(
+                lambda v: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold' if isinstance(v, (int, float)) and v > 0 else '', 
+                subset=['Missing Count']
+            )
+            styled_table(styled_missing, height=300)
+            
+        with col2:
+            st.write("**Missing Percentage**")
+            missing_pct_df = (df.isnull().mean() * 100).round(2).to_frame(name="% Missing").reset_index().rename(columns={"index": "Column Name"})
+            styled_missing_pct = missing_pct_df.style.applymap(
+                lambda v: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold' if isinstance(v, (int, float)) and v > 0 else '', 
+                subset=['% Missing']
+            )
+            styled_table(styled_missing_pct, height=300)
+        
+        total_missing_all = df.isnull().sum().sum()
+        total_cells = df.size
+        total_missing_pct = (total_missing_all / total_cells) * 100 if total_cells > 0 else 0
+        
+        m1, m2 = st.columns(2)
+        with m1:
+            st.markdown(f"""
+                <div style="background-color: #fee2e2; padding: 15px; border-radius: 10px; border-left: 5px solid #dc2626; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #991b1b; margin-bottom: 4px;">📂 Total Missing Cells</div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #dc2626;">{total_missing_all:,}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with m2:
+            st.markdown(f"""
+                <div style="background-color: #fff7ed; padding: 15px; border-radius: 10px; border-left: 5px solid #f97316; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #9a3412; margin-bottom: 4px;">📊 Total Missing Percentage %</div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #ea580c;">{total_missing_pct:.2f}%</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # FIXED: Excel Export with proper error handling
+        if not missing_df.empty:
+            missing_summary = missing_df.copy()
+            missing_summary["% Missing"] = missing_pct_df["% Missing"].values
+            
+            excel_data = to_excel(missing_summary)
+            if excel_data:
+                # FIXED: استخدام MIME type صحيح
+                st.download_button(
+                    label="📥 Download Missing Values Report (Excel)",
+                    data=excel_data,
+                    file_name="missing_values_report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_missing_summary"
+                )
+                
+    except Exception as e:
+        st.error(f"Error in Missing Values section: {str(e)}")
+        st.info("Please ensure xlsxwriter is installed: pip install xlsxwriter")
 
-    # ═══════════════════════════════════════════════════════════
+    st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
+    
+    # أزرار إضافية
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("Show Rows with Missing Values", key="btn_missing_rows"):
+            missing_rows_df = df[df.isnull().any(axis=1)]
+            if not missing_rows_df.empty:
+                styled_table(missing_rows_df)
+                excel_data = to_excel(missing_rows_df)
+                if excel_data:
+                    st.download_button(
+                        label="📥 Download Missing Rows (Excel)", 
+                        data=excel_data, 
+                        file_name="missing_rows_data.xlsx", 
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key="dl_missing_rows"
+                    )
+            else:
+                st.success("No rows with missing values found!")
+                
+    with col_btn2:
+        if st.button("Show Columns with Missing Values", key="btn_missing_cols"):
+            cols_with_missing = df.columns[df.isnull().any()].tolist()
+            if cols_with_missing:
+                st.write("Columns with missing values:", cols_with_missing)
+            else:
+                st.success("No columns with missing values found!")
+
     # Section 5: Duplicates
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 5. 🔁 Duplicate Rows Analysis")
     dup_count = df.duplicated().sum()
-    dup_pct = (dup_count / len(df)) * 100
+    dup_pct = (dup_count / len(df)) * 100 if len(df) > 0 else 0
     d1, d2, d3 = st.columns(3)
     d1.markdown(create_color_card("Total Duplicate Rows", f"{dup_count:,}", "#fef2f2", "#fee2e2", "#dc2626", "#7f1d1d", "#7f1d1d"), unsafe_allow_html=True)
     d2.markdown(create_color_card("Duplicate %", f"{dup_pct:.2f}%", "#fffbeb", "#fef3c7", "#d97706", "#78350f", "#78350f"), unsafe_allow_html=True)
@@ -694,18 +758,18 @@ def render_data_exploration():
     st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
     if dup_count > 0:
         with st.expander(f"👁️ View {dup_count} Duplicate Rows"):
-            styled_table(df[df.duplicated(keep=False)].sort_values(by=list(df.columns)).style.set_properties(**{'background-color': '#fee2e2', 'color': '#b91c1c'}))
+            dup_df = df[df.duplicated(keep=False)].sort_values(by=list(df.columns))
+            styled_dup = dup_df.style.set_properties(**{'background-color': '#fee2e2', 'color': '#b91c1c'})
+            styled_table(styled_dup)
     else:
         st.success("✅ No duplicate rows found in the dataset.")
 
-    # ── Section 6: Statistical Summary ───────────────────────
+    # Section 6: Statistical Summary
     st.markdown("---")
     st.markdown("### 6. Quick Statistical Summary (df.describe)")
     styled_table(df.describe().reset_index().rename(columns={"index": "Statistic"}))
 
-    # ═══════════════════════════════════════════════════════════
     # Section 7: Outlier Detection
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 7. 📊 Outlier Detection — Per Column Summary")
     num_cols_out = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -723,43 +787,66 @@ def render_data_exploration():
                 iqr_data.append({"Column": _c, "Q1": round(q1, 3), "Q3": round(q3, 3),
                                   "IQR": round(iqr, 3), "Lower Bound": round(lb, 3),
                                   "Upper Bound": round(ub, 3), "Outlier Count": n_o,
-                                  "Outlier %": round(n_o / len(df) * 100, 2)})
+                                  "Outlier %": round(n_o / len(df) * 100, 2) if len(df) > 0 else 0})
             iqr_df = pd.DataFrame(iqr_data)
             st.metric("Total Outliers (IQR)", f"{iqr_df['Outlier Count'].sum():,}")
             styled_table(iqr_df.style.background_gradient(cmap="Reds", subset=["Outlier Count", "Outlier %"]))
-            st.download_button(label="📥 Download IQR Outliers (Excel)", data=to_excel(iqr_df), file_name="outliers_iqr.xlsx", mime="application/vnd.ms-excel", key="dl_iqr")
+            
+            excel_data = to_excel(iqr_df)
+            if excel_data:
+                st.download_button(
+                    label="📥 Download IQR Outliers (Excel)", 
+                    data=excel_data, 
+                    file_name="outliers_iqr.xlsx", 
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_iqr"
+                )
+                
         with tab_z:
             z_thresh = st.slider("Z-Score Threshold", 1.5, 4.0, 3.0, 0.1, key="exp_z_thresh")
             z_data = []
             for _c in num_cols_out:
                 cc = df[_c].dropna()
-                if len(cc) < 3: continue
+                if len(cc) < 3: 
+                    continue
                 zs  = np.abs(stats.zscore(cc))
                 n_o = int((zs > z_thresh).sum())
                 z_data.append({"Column": _c, "Mean": round(cc.mean(), 3), "Std": round(cc.std(), 3),
-                               "Outlier Count": n_o, "Outlier %": round(n_o / len(df) * 100, 2)})
+                               "Outlier Count": n_o, "Outlier %": round(n_o / len(df) * 100, 2) if len(df) > 0 else 0})
             z_df = pd.DataFrame(z_data)
             st.metric(f"Total Outliers (Z > {z_thresh})", f"{z_df['Outlier Count'].sum():,}")
             styled_table(z_df.style.background_gradient(cmap="Oranges", subset=["Outlier Count", "Outlier %"]))
-            st.download_button(label="📥 Download Z-Score Outliers (Excel)", data=to_excel(z_df), file_name="outliers_zscore.xlsx", mime="application/vnd.ms-excel", key="dl_z")
+            
+            excel_data = to_excel(z_df)
+            if excel_data:
+                st.download_button(
+                    label="📥 Download Z-Score Outliers (Excel)", 
+                    data=excel_data, 
+                    file_name="outliers_zscore.xlsx", 
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_z"
+                )
     else:
         st.info("No numeric columns available for outlier detection.")
 
-    # ═══════════════════════════════════════════════════════════
     # Section 8: Cardinality
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 8. 🔢 Unique Values & Cardinality Classification (df.nunique)")
     nunique_df = df.nunique().reset_index()
     nunique_df.columns = ["Column", "Unique Values"]
-    nunique_df["% of Total Rows"] = (nunique_df["Unique Values"] / len(df) * 100).round(2)
+    nunique_df["% of Total Rows"] = (nunique_df["Unique Values"] / len(df) * 100).round(2) if len(df) > 0 else 0
     nunique_df["Dtype"] = [str(df[c].dtype) for c in nunique_df["Column"]]
+    
     def classify_cardinality(row):
         pct = row["% of Total Rows"]
         n   = row["Unique Values"]
-        if pct >= 90 or n == len(df): return "🔑 ID-like"
-        elif n <= 10:                  return "🟢 Low Cardinality"
-        else:                          return "🔴 High Cardinality"
+        if pct >= 90 or n == len(df): 
+            return "🔑 ID-like"
+        elif n <= 10:                  
+            return "🟢 Low Cardinality"
+        else:                          
+            return "🔴 High Cardinality"
+            
     nunique_df["Cardinality Class"] = nunique_df.apply(classify_cardinality, axis=1)
     cn1, cn2 = st.columns([2, 1])
     with cn1:
@@ -775,13 +862,19 @@ def render_data_exploration():
         st.markdown("<div style='margin:8px 0'></div>", unsafe_allow_html=True)
         st.markdown(create_color_card("🔑 ID-like Columns",  f"{id_} cols",  "#fdf4ff", "#fae8ff", "#c026d3", "#701a75", "#701a75"), unsafe_allow_html=True)
 
-    st.download_button(label="📥 Download Cardinality Report (Excel)", data=to_excel(nunique_df), file_name="cardinality_report.xlsx", mime="application/vnd.ms-excel")
+    excel_data = to_excel(nunique_df)
+    if excel_data:
+        st.download_button(
+            label="📥 Download Cardinality Report (Excel)", 
+            data=excel_data, 
+            file_name="cardinality_report.xlsx", 
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_cardinality"
+        )
 
     st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
     
-    # ═══════════════════════════════════════════════════════════
     # Section 9: df.info + Memory
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 9. 📋 df.info() — Full Structure & Memory Usage")
     mem_total = df.memory_usage(deep=True).sum()
@@ -805,9 +898,7 @@ def render_data_exploration():
         styled_table(info_df.style.background_gradient(cmap="Blues", subset=["Memory (KB)"]))
         st.caption(f"Total Memory: **{mem_mb:.3f} MB** | RangeIndex: {len(df)} entries | {df.shape[1]} columns")
 
-    # ═══════════════════════════════════════════════════════════
     # Section 10: Memory Optimization
-    # ═══════════════════════════════════════════════════════════
     st.markdown("---")
     st.markdown("### 🧾 10. Memory Optimization Suggestions")
     current_mem = df.memory_usage(deep=True).sum() / (1024**2)
@@ -825,12 +916,17 @@ def render_data_exploration():
                                  "Current (KB)": round(_col_kb, 2), "Est. Saving (KB)": round(_col_kb * 0.5, 2)})
         elif _dtype == "int64":
             col_data = df[_col].dropna()
-            if len(col_data) == 0: continue
+            if len(col_data) == 0: 
+                continue
             cmin, cmax = col_data.min(), col_data.max()
-            if   cmin >= -128 and cmax <= 127:          tgt, ratio = "int8",  0.875
-            elif cmin >= -32768 and cmax <= 32767:      tgt, ratio = "int16", 0.75
-            elif cmin >= -2147483648 and cmax <= 2147483647: tgt, ratio = "int32", 0.5
-            else:                                       tgt = None
+            if   cmin >= -128 and cmax <= 127:          
+                tgt, ratio = "int8",  0.875
+            elif cmin >= -32768 and cmax <= 32767:      
+                tgt, ratio = "int16", 0.75
+            elif cmin >= -2147483648 and cmax <= 2147483647: 
+                tgt, ratio = "int32", 0.5
+            else:                                       
+                tgt = None
             if tgt:
                 suggestions.append({"Column": _col, "Current Dtype": _dtype, "Suggested": tgt,
                                      "Current (KB)": round(_col_kb, 2), "Est. Saving (KB)": round(_col_kb * ratio, 2)})
@@ -853,13 +949,8 @@ def render_strategic_discovery():
 def render_data_quality():
     pass
 
-
-
 def render_data_cleaning():
     pass
-
-# render_insights removed and merged into render_strategic_discovery
-
 
 def render_visualization():
     pass
@@ -870,13 +961,11 @@ def render_statistics():
 def render_report():
     pass
 
-
 def render_numeric_functions():
     pass
 
 def render_string_functions():
     pass
-
 
 # ==========================================
 # 4. Main Execution Route
